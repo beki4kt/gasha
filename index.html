@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gashabet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .bg-dark-navy { background-color: #001a35; }
+        .bg-card-blue { background-color: #1a3a5a; }
+        .bg-neon-green { background-color: #7cfc00; }
+        .hidden { display: none; }
+        #sidebar { transition: 0.3s ease-in-out; }
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px; }
+        .game-item { border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px rgba(0,0,0,0.3); cursor: pointer; aspect-ratio: 16/10; position: relative; }
+        .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+        .game-item:hover .play-overlay { opacity: 1; }
+    </style>
+</head>
+<body class="bg-[#f4f7f9] font-sans overflow-x-hidden">
+
+    <header class="bg-dark-navy text-white p-3 flex justify-between items-center sticky top-0 z-[100] shadow-md">
+        <div class="flex items-center">
+            <img src="logo.png" class="h-6 mr-2" onerror="this.style.display='none'">
+            <div class="text-xl font-bold italic tracking-tighter">Gasha<span class="font-light">bet</span></div>
+        </div>
+        <div id="logged-out-ui">
+            <button onclick="toggleModal('login-modal')" class="text-xs font-bold uppercase mr-3">Login</button>
+            <button onclick="toggleModal('register-modal')" class="bg-[#007bff] px-4 py-2 rounded text-xs font-bold uppercase">Register</button>
+        </div>
+        <div id="logged-in-ui" class="hidden flex items-center space-x-2">
+            <div class="bg-[#1a3a5a] px-3 py-2 rounded flex items-center text-sm font-bold border border-white/5">
+                <span id="header-balance">0.00</span> <span class="ml-1 text-[10px] opacity-60">ETB</span>
+            </div>
+            <button onclick="showPage('deposit-methods-page')" class="bg-[#007bff] px-4 py-2 rounded text-xs font-bold uppercase">Deposit</button>
+            <button onclick="toggleSidebar()" class="text-2xl ml-1"><i class="fa-solid fa-circle-user"></i></button>
+        </div>
+    </header>
+
+    <div id="home-page" class="game-grid pb-24"></div>
+
+    <div id="sidebar" class="fixed inset-y-0 right-0 w-80 bg-white z-[200] shadow-2xl translate-x-full">
+        <div class="bg-dark-navy text-white p-4 flex justify-between items-center">
+            <span class="font-bold text-sm tracking-widest uppercase">Menu</span>
+            <button onclick="toggleSidebar()" class="text-2xl">&times;</button>
+        </div>
+        <div class="p-0">
+            <div class="p-6 border-b flex items-center space-x-4">
+                <i class="fa-solid fa-wallet text-xl text-gray-400"></i>
+                <div><p class="text-[10px] text-gray-400 font-bold uppercase mb-1 leading-none">Balance</p><p class="text-xl font-black text-gray-800"><span class="current-balance-text">0.00</span> ETB</p></div>
+            </div>
+            <div class="p-6 border-b flex items-center space-x-4">
+                <i class="fa-solid fa-wallet text-xl text-gray-400"></i>
+                <div><p class="text-[10px] text-gray-400 font-bold uppercase mb-1 leading-none">Points Balance</p><p class="text-xl font-black text-gray-800">50.00</p></div>
+            </div>
+            <div class="p-6 space-y-5">
+                <div class="flex justify-between items-center font-bold text-gray-600 text-sm"><span><i class="fa-solid fa-clock-rotate-left mr-3"></i> MY BETS</span><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+                <div class="flex justify-between items-center font-bold text-gray-600 text-sm"><span><i class="fa-solid fa-wallet mr-3"></i> BALANCE</span><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
+                <div class="pl-8 space-y-4">
+                    <div onclick="showPage('deposit-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer">DEPOSIT</div>
+                    <div onclick="showPage('withdraw-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer">WITHDRAW</div>
+                </div>
+            </div>
+            <div class="px-6 pt-10"><button onclick="signOut()" class="w-full bg-[#f8f9fa] py-4 rounded-lg border font-bold text-gray-500 text-xs flex items-center justify-center"><i class="fa-solid fa-right-from-bracket mr-2"></i> SIGN OUT</button></div>
+        </div>
+    </div>
+
+    <div id="register-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-8 shadow-2xl">
+            <div class="flex justify-center mb-4"><img src="logo.png" class="h-10"></div>
+            <div class="flex justify-center mb-4 text-[#007bff] text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="space-y-4">
+                <div class="flex border rounded-lg overflow-hidden"><span class="px-4 py-3 bg-gray-50 font-bold text-sm text-gray-600">+251</span><input id="reg-phone" type="text" placeholder="9..." class="flex-1 p-3 outline-none text-sm"></div>
+                <input id="reg-pass" type="password" placeholder="Password" class="w-full border p-3 rounded-lg outline-none text-sm">
+                <input id="reg-confirm" type="password" placeholder="Confirm" class="w-full border p-3 rounded-lg outline-none text-sm">
+                <div class="border rounded p-2 flex items-center justify-between text-[11px] font-bold"><div class="text-green-600">Success!</div><div class="text-gray-800 uppercase font-black">Cloudflare</div></div>
+                <button onclick="handleAuth('register')" class="w-full bg-[#007bff] text-white py-3.5 rounded-lg font-bold uppercase shadow-md">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-8 shadow-2xl">
+            <div class="flex justify-center mb-4"><img src="logo.png" class="h-10"></div>
+            <div class="flex justify-center mb-6 text-[#007bff] text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="space-y-4">
+                <input id="log-phone" type="text" placeholder="Phone or ID" class="w-full border p-4 rounded-lg text-sm outline-none">
+                <input id="log-pass" type="password" placeholder="Password" class="w-full border p-4 rounded-lg text-sm outline-none">
+                <div class="border rounded p-2 flex items-center justify-between text-[11px] font-bold"><div class="text-green-600">Success!</div><div class="text-gray-800 uppercase font-black">Cloudflare</div></div>
+                <button onclick="handleAuth('login')" class="w-full bg-[#007bff] text-white py-4 rounded-lg font-bold uppercase shadow-md">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deposit-methods-page" class="hidden fixed inset-0 bg-[#f4f7f9] z-[150] overflow-y-auto">
+        <header class="bg-dark-navy text-white p-4 flex items-center border-b border-white/5"><button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button><h1 class="text-sm font-bold uppercase tracking-widest flex-1 text-center pr-8">ገቢ አማራጮች</h1></header>
+        <div class="p-6 space-y-4">
+            <div onclick="showPage('tele-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="telebirr_logo.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
+            <div onclick="showPage('cbe-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="cbe_logo.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
+            <div onclick="showPage('boa-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="abyssinia.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
+        </div>
+    </div>
+
+    <div id="withdraw-methods-page" class="hidden fixed inset-0 bg-[#f4f7f9] z-[150] overflow-y-auto">
+        <header class="bg-dark-navy text-white p-4 flex items-center border-b border-white/5"><button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button><h1 class="text-sm font-bold uppercase tracking-widest flex-1 text-center pr-8">ወጪ አማራጮች</h1></header>
+        <div class="p-6 space-y-4">
+            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="telebirr_logo.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
+            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="cbe_logo.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
+            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="abyssinia.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
+        </div>
+    </div>
+
+    <div id="tele-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
+            <p>ከቴሌብር ወደ <span class="text-neon-green font-black">0950702900</span> ያስተላልፉ</p>
+            <input id="dep-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
+            <textarea id="dep-sms" placeholder="Paste SMS here" class="w-full bg-dark-navy p-4 rounded-xl h-32"></textarea>
+            <button onclick="handleTransaction('deposit', 'dep-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+        </div>
+    </div>
+
+    <div id="cbe-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
+            <p>ከ CBE ወደ <span class="text-neon-green font-black">1000610149786</span> ያስተላልፉ</p>
+            <input id="cbe-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
+            <button onclick="handleTransaction('deposit', 'cbe-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+        </div>
+    </div>
+
+    <div id="boa-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
+            <p>ከ BOA ወደ <span class="text-neon-green font-black">157992651</span> ያስተላልፉ</p>
+            <input id="boa-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
+            <button onclick="handleTransaction('deposit', 'boa-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+        </div>
+    </div>
+
+    <div id="withdraw-form-page" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-6 overflow-y-auto">
+        <button onclick="showPage('withdraw-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <h1 class="text-xl font-black mb-6 uppercase tracking-wider">Confirm Withdrawal</h1>
+        <div class="space-y-4">
+            <input id="with-amount" type="number" placeholder="Amount" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 font-bold text-xl outline-none">
+            <input id="with-account" type="text" placeholder="Bank/Phone Account Number" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 font-bold outline-none">
+            <button onclick="handleTransaction('withdraw', 'with-amount')" class="w-full bg-red-600 py-4 rounded-xl font-black uppercase">Confirm</button>
+        </div>
+    </div>
+
+    <div id="game-overlay" class="hidden fixed inset-0 bg-black/90 z-[200] flex flex-col items-center justify-center p-6 text-center">
+        <div class="bg-card-blue p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl">
+            <i class="fa-solid fa-lock text-red-500 text-5xl mb-4"></i>
+            <h2 class="text-white text-xl font-black mb-2 uppercase">Low Balance</h2>
+            <p class="text-gray-400 text-sm mb-6">ቢያንስ <span class="text-neon-green font-bold">300 ETB</span> ያስፈልግዎታል::</p>
+            <button onclick="showPage('deposit-methods-page'); closeGame()" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Deposit Now</button>
+            <button onclick="closeGame()" class="mt-4 text-white/50 text-xs font-bold uppercase">BACK</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://gashabet.org"; // Change .net to .org to match your new domain
+        function initGrid() {
+            const container = document.getElementById('home-page');
+            container.innerHTML = "";
+            for (let i = 1; i <= 30; i++) {
+                container.innerHTML += `<div class="game-item" onclick="openGame(${i})"><img src="${i}.jpg"><div class="play-overlay"><i class="fa-solid fa-play text-white text-3xl"></i></div></div>`;
+            }
+        }
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('translate-x-full'); }
+        function hidePages() { ['home-page', 'deposit-methods-page', 'withdraw-methods-page', 'tele-dep', 'cbe-dep', 'boa-dep', 'withdraw-form-page'].forEach(p => {if(document.getElementById(p)) document.getElementById(p).classList.add('hidden')}); }
+        function showPage(id) { hidePages(); document.getElementById(id).classList.remove('hidden'); if(document.getElementById('sidebar')) document.getElementById('sidebar').classList.add('translate-x-full'); }
+        function openGame(id) {
+            const user = JSON.parse(localStorage.getItem('gasha_user'));
+            if (!user || user.balance < 300) document.getElementById('game-overlay').classList.remove('hidden');
+            else alert("Loading Game " + id + "...");
+        }
+        function closeGame() { document.getElementById('game-overlay').classList.add('hidden'); }
+        function signOut() { localStorage.clear(); location.reload(); }
+
+        async function handleAuth(type) {
+            const phone = document.getElementById(type === 'register' ? 'reg-phone' : 'log-phone').value;
+            const password = document.getElementById(type === 'register' ? 'reg-pass' : 'log-pass').value;
+            try {
+                const res = await fetch(`${API_URL}/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) });
+                const data = await res.json();
+                if (res.ok) { localStorage.setItem('gasha_user', JSON.stringify(data.user)); location.reload(); } else alert(data.message);
+            } catch(e) { alert("Server Error"); }
+        }
+
+        async function handleTransaction(type, inputId) {
+            const amount = document.getElementById(inputId).value;
+            const accountNumber = document.getElementById('with-account')?.value || '';
+            const user = JSON.parse(localStorage.getItem('gasha_user'));
+            try {
+                const res = await fetch(`${API_URL}/transaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: user.phone, amount, type, accountNumber }) });
+                const data = await res.json();
+                if (res.ok) { user.balance = data.newBalance; localStorage.setItem('gasha_user', JSON.stringify(user)); location.reload(); } else alert(data.message);
+            } catch(e) { alert("Transaction Failed"); }
+        }
+
+        window.onload = () => {
+            initGrid();
+            const user = JSON.parse(localStorage.getItem('gasha_user'));
+            if (user) {
+                document.getElementById('logged-out-ui').classList.add('hidden');
+                document.getElementById('logged-in-ui').classList.remove('hidden');
+                document.getElementById('header-balance').innerText = user.balance.toFixed(2);
+                document.querySelectorAll('.current-balance-text').forEach(el => el.innerText = user.balance.toFixed(2));
+            }
+        };
+    </script>
+</body>
+</html>
