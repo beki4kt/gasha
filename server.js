@@ -7,32 +7,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// --- SERVE FRONTEND ---
+// Serve static files (index.html, images, etc.)
 app.use(express.static(path.join(__dirname, './'))); 
 
-// Health Check Route for Cron-job (Keeps server awake)
-app.get('/ping', (req, res) => res.send('Awake'));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-const USERS_FILE = '/tmp/users.json'; // Render prefers /tmp for writeable files in free tier
+const USERS_FILE = './users.json';
 
 const getUsers = () => {
     if (!fs.existsSync(USERS_FILE)) return [];
     try { return JSON.parse(fs.readFileSync(USERS_FILE)); } catch (e) { return []; }
 };
-
-// Reset Balances - ONLY run this if you want a clean slate on every manual restart
-const resetBalances = () => {
-    let users = getUsers();
-    if (users.length > 0) {
-        users = users.map(u => ({ ...u, balance: 0.00, points: 50.00 }));
-        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-    }
-};
-// resetBalances(); // Uncomment if you want to force 0.00 on every restart
 
 app.post('/register', (req, res) => {
     const { phone, password } = req.body;
@@ -65,6 +48,8 @@ app.post('/transaction', (req, res) => {
     } else res.status(404).json({ message: "User not found" });
 });
 
-// RENDER DYNAMIC PORT
+// CRITICAL RENDER PORT FIX
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Gashabet Master Live on Port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Gashabet Master Live on Port ${PORT}`);
+});
