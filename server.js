@@ -1,25 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const app = express();
 
-const path = require('path');
+app.use(express.json());
+app.use(cors());
+
+// --- SERVE FRONTEND ---
 app.use(express.static(path.join(__dirname, './'))); 
+
+// Health Check Route for Cron-job (Keeps server awake)
+app.get('/ping', (req, res) => res.send('Awake'));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use(express.json());
-app.use(cors());
-
-const USERS_FILE = './users.json';
+const USERS_FILE = '/tmp/users.json'; // Render prefers /tmp for writeable files in free tier
 
 const getUsers = () => {
     if (!fs.existsSync(USERS_FILE)) return [];
-    return JSON.parse(fs.readFileSync(USERS_FILE));
+    try { return JSON.parse(fs.readFileSync(USERS_FILE)); } catch (e) { return []; }
 };
 
+// Reset Balances - ONLY run this if you want a clean slate on every manual restart
 const resetBalances = () => {
     let users = getUsers();
     if (users.length > 0) {
@@ -27,7 +32,7 @@ const resetBalances = () => {
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
     }
 };
-resetBalances();
+// resetBalances(); // Uncomment if you want to force 0.00 on every restart
 
 app.post('/register', (req, res) => {
     const { phone, password } = req.body;
@@ -54,11 +59,12 @@ app.post('/transaction', (req, res) => {
     if (userIndex !== -1) {
         const amt = parseFloat(amount);
         if (type === 'withdraw' && users[userIndex].balance < amt) return res.status(400).json({ message: "Insufficient balance!" });
-        if (type === 'withdraw') console.log(`Withdrawal Request: ${amt} ETB to Acc: ${accountNumber}`);
         users[userIndex].balance += (type === 'deposit' ? amt : -amt);
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
         res.json({ message: "Success!", newBalance: users[userIndex].balance });
     } else res.status(404).json({ message: "User not found" });
 });
 
-app.listen(3000, () => console.log("🚀 Gashabet Server Live on Port 3000"));
+// RENDER DYNAMIC PORT
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Gashabet Master Live on Port ${PORT}`));
