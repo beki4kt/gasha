@@ -3,22 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gashabet</title>
+    <title>Gashabet | Premium Betting</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .bg-dark-navy { background-color: #001a35; }
         .bg-card-blue { background-color: #1a3a5a; }
-        .bg-neon-green { background-color: #7cfc00; }
+        .bg-deposit-green { background-color: #89e673; }
+        .bg-page-blue { background-color: #1f5c8b; }
+        .bg-option-blue { background-color: #296190; }
         .hidden { display: none; }
         #sidebar { transition: 0.3s ease-in-out; }
         .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px; }
-        .game-item { border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px rgba(0,0,0,0.3); cursor: pointer; aspect-ratio: 16/10; position: relative; }
+        .game-item { border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px rgba(0,0,0,0.3); cursor: pointer; aspect-ratio: 16/10; position: relative; transition: 0.2s; }
+        .game-item:hover { transform: translateY(-5px); }
         .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
         .game-item:hover .play-overlay { opacity: 1; }
+        
+        /* Modal Styling to match screenshots */
+        .modal-input { width: 100%; border: 1px solid #d1d5db; padding: 12px; border-radius: 4px; outline: none; font-size: 14px; margin-top: 4px; transition: 0.2s; }
+        .modal-input:focus { border-color: #3066e3; box-shadow: 0 0 0 2px rgba(48,102,227,0.1); }
+        .modal-label { font-size: 13px; font-weight: 500; color: #374151; margin-top: 12px; display: block; }
     </style>
 </head>
-<body class="bg-[#f4f7f9] font-sans overflow-x-hidden">
+<body class="bg-page-blue font-sans overflow-x-hidden">
 
     <header class="bg-dark-navy text-white p-3 flex justify-between items-center sticky top-0 z-[100] shadow-md">
         <div class="flex items-center">
@@ -30,7 +38,7 @@
             <button onclick="toggleModal('register-modal')" class="bg-[#007bff] px-4 py-2 rounded text-xs font-bold uppercase">Register</button>
         </div>
         <div id="logged-in-ui" class="hidden flex items-center space-x-2">
-            <div class="bg-[#1a3a5a] px-3 py-2 rounded flex items-center text-sm font-bold border border-white/5">
+            <div class="bg-[#1a3a5a] px-3 py-2 rounded flex items-center text-sm font-bold border border-white/10">
                 <span id="header-balance">0.00</span> <span class="ml-1 text-[10px] opacity-60">ETB</span>
             </div>
             <button onclick="showPage('deposit-methods-page')" class="bg-[#007bff] px-4 py-2 rounded text-xs font-bold uppercase">Deposit</button>
@@ -48,157 +56,294 @@
         <div class="p-0">
             <div class="p-6 border-b flex items-center space-x-4">
                 <i class="fa-solid fa-wallet text-xl text-gray-400"></i>
-                <div><p class="text-[10px] text-gray-400 font-bold uppercase mb-1 leading-none">Balance</p><p class="text-xl font-black text-gray-800"><span class="current-balance-text">0.00</span> ETB</p></div>
-            </div>
-            <div class="p-6 border-b flex items-center space-x-4">
-                <i class="fa-solid fa-wallet text-xl text-gray-400"></i>
-                <div><p class="text-[10px] text-gray-400 font-bold uppercase mb-1 leading-none">Points Balance</p><p class="text-xl font-black text-gray-800">50.00</p></div>
-            </div>
-            <div class="p-6 space-y-5">
-                <div class="flex justify-between items-center font-bold text-gray-600 text-sm"><span><i class="fa-solid fa-clock-rotate-left mr-3"></i> MY BETS</span><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
-                <div class="flex justify-between items-center font-bold text-gray-600 text-sm"><span><i class="fa-solid fa-wallet mr-3"></i> BALANCE</span><i class="fa-solid fa-chevron-down text-[10px]"></i></div>
-                <div class="pl-8 space-y-4">
-                    <div onclick="showPage('deposit-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer">DEPOSIT</div>
-                    <div onclick="showPage('withdraw-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer">WITHDRAW</div>
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Balance</p>
+                    <p class="text-xl font-black text-gray-800"><span class="current-balance-text">0.00</span> ETB</p>
                 </div>
             </div>
-            <div class="px-6 pt-10"><button onclick="signOut()" class="w-full bg-[#f8f9fa] py-4 rounded-lg border font-bold text-gray-500 text-xs flex items-center justify-center"><i class="fa-solid fa-right-from-bracket mr-2"></i> SIGN OUT</button></div>
-        </div>
-    </div>
-
-    <div id="register-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-8 shadow-2xl">
-            <div class="flex justify-center mb-4"><img src="logo.png" class="h-10"></div>
-            <div class="flex justify-center mb-4 text-[#007bff] text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
-            <div class="space-y-4">
-                <div class="flex border rounded-lg overflow-hidden"><span class="px-4 py-3 bg-gray-50 font-bold text-sm text-gray-600">+251</span><input id="reg-phone" type="text" placeholder="9..." class="flex-1 p-3 outline-none text-sm"></div>
-                <input id="reg-pass" type="password" placeholder="Password" class="w-full border p-3 rounded-lg outline-none text-sm">
-                <input id="reg-confirm" type="password" placeholder="Confirm" class="w-full border p-3 rounded-lg outline-none text-sm">
-                <div class="border rounded p-2 flex items-center justify-between text-[11px] font-bold"><div class="text-green-600">Success!</div><div class="text-gray-800 uppercase font-black">Cloudflare</div></div>
-                <button onclick="handleAuth('register')" class="w-full bg-[#007bff] text-white py-3.5 rounded-lg font-bold uppercase shadow-md">Register</button>
+            <div class="p-6 border-b flex items-center space-x-4">
+                <i class="fa-solid fa-star text-xl text-yellow-500"></i>
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Points Balance</p>
+                    <p class="text-xl font-black text-gray-800">50.00</p>
+                </div>
+            </div>
+            <div class="p-6 space-y-5">
+                <div class="flex justify-between items-center font-bold text-gray-600 text-sm cursor-pointer">
+                    <span class="flex items-center"><i class="fa-solid fa-clock-rotate-left mr-3"></i> MY BETS</span>
+                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </div>
+                <div class="flex justify-between items-center font-bold text-gray-600 text-sm cursor-pointer">
+                    <span class="flex items-center"><i class="fa-solid fa-wallet mr-3"></i> BALANCE</span>
+                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </div>
+                <div class="pl-8 space-y-4">
+                    <div onclick="showPage('deposit-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer hover:text-blue-600 uppercase">Deposit</div>
+                    <div onclick="showPage('withdraw-methods-page')" class="text-xs font-bold text-gray-500 cursor-pointer hover:text-blue-600 uppercase">Withdraw</div>
+                </div>
+            </div>
+            <div class="px-6 pt-10">
+                <button onclick="signOut()" class="w-full bg-[#f8f9fa] py-4 rounded-lg border border-gray-200 font-bold text-gray-500 text-xs flex items-center justify-center">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> SIGN OUT
+                </button>
             </div>
         </div>
     </div>
 
-    <div id="login-modal" class="hidden fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-8 shadow-2xl">
-            <div class="flex justify-center mb-4"><img src="logo.png" class="h-10"></div>
-            <div class="flex justify-center mb-6 text-[#007bff] text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
+    <div id="login-modal" class="hidden fixed inset-0 bg-black/70 z-[300] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded shadow-2xl relative p-8">
+            <button onclick="toggleModal('login-modal')" class="absolute top-4 right-5 text-3xl text-gray-300 hover:text-gray-600">&times;</button>
+            <div class="flex flex-col items-center mb-6">
+                <img src="logo.png" class="h-10 mb-4" onerror="this.style.display='none'">
+                <div class="text-blue-600 text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
+            </div>
             <div class="space-y-4">
-                <input id="log-phone" type="text" placeholder="Phone or ID" class="w-full border p-4 rounded-lg text-sm outline-none">
-                <input id="log-pass" type="password" placeholder="Password" class="w-full border p-4 rounded-lg text-sm outline-none">
-                <div class="border rounded p-2 flex items-center justify-between text-[11px] font-bold"><div class="text-green-600">Success!</div><div class="text-gray-800 uppercase font-black">Cloudflare</div></div>
-                <button onclick="handleAuth('login')" class="w-full bg-[#007bff] text-white py-4 rounded-lg font-bold uppercase shadow-md">Sign In</button>
+                <div>
+                    <label class="modal-label">Phone number, username or ID</label>
+                    <input id="log-phone" type="text" placeholder="Enter your phone, username or ID" class="modal-input">
+                </div>
+                <div>
+                    <label class="modal-label">Password</label>
+                    <input id="log-pass" type="password" placeholder="Enter your password" class="modal-input">
+                </div>
+                <div class="flex justify-between items-center text-sm mt-4">
+                    <label class="flex items-center text-gray-600 cursor-pointer">
+                        <input type="checkbox" class="mr-2 rounded border-gray-300"> Remember me
+                    </label>
+                    <a href="#" class="text-blue-600 font-medium">Forgot password?</a>
+                </div>
+                <div class="border rounded p-3 flex items-center justify-between text-[12px] font-bold mt-4 bg-gray-50/50">
+                    <div class="text-green-600 flex items-center"><i class="fa-solid fa-circle-check mr-2"></i> Success!</div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-gray-800 uppercase font-black text-[10px] tracking-widest leading-tight">Cloudflare</span>
+                        <div class="flex space-x-2 text-[8px] text-gray-400 font-normal"><span>Privacy</span><span>•</span><span>Help</span></div>
+                    </div>
+                </div>
+                <button onclick="handleAuth('login')" class="w-full bg-[#3066e3] text-white py-3.5 rounded font-bold uppercase tracking-wider mt-4 shadow-sm hover:bg-blue-700">Sign In</button>
+            </div>
+            <div class="mt-8 text-center text-xs text-gray-500 font-medium">
+                Don't have an account? <span onclick="toggleModal('login-modal'); toggleModal('register-modal')" class="text-blue-600 cursor-pointer uppercase font-bold ml-1">Register</span>
             </div>
         </div>
     </div>
 
-    <div id="deposit-methods-page" class="hidden fixed inset-0 bg-[#f4f7f9] z-[150] overflow-y-auto">
-        <header class="bg-dark-navy text-white p-4 flex items-center border-b border-white/5"><button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button><h1 class="text-sm font-bold uppercase tracking-widest flex-1 text-center pr-8">ገቢ አማራጮች</h1></header>
-        <div class="p-6 space-y-4">
-            <div onclick="showPage('tele-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="telebirr_logo.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
-            <div onclick="showPage('cbe-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="cbe_logo.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
-            <div onclick="showPage('boa-dep')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="abyssinia.png" class="h-10 mb-4"><button class="w-full bg-neon-green text-black py-2 rounded-xl font-black text-xs uppercase">Deposit</button></div>
+    <div id="register-modal" class="hidden fixed inset-0 bg-black/70 z-[300] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded shadow-2xl relative p-8">
+            <button onclick="toggleModal('register-modal')" class="absolute top-4 right-5 text-3xl text-gray-300 hover:text-gray-600">&times;</button>
+            <div class="flex flex-col items-center mb-6">
+                <img src="logo.png" class="h-10 mb-4" onerror="this.style.display='none'">
+                <div class="text-blue-600 text-5xl"><i class="fa-solid fa-shield-halved"></i></div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="modal-label">Phone number</label>
+                    <div class="flex mt-1">
+                        <span class="px-4 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l text-sm font-bold text-gray-600">+251</span>
+                        <input id="reg-phone" type="text" placeholder="9..." class="flex-1 border border-gray-300 p-3 rounded-r outline-none text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="modal-label">Password</label>
+                    <input id="reg-pass" type="password" placeholder="Create password" class="modal-input">
+                </div>
+                <div>
+                    <label class="modal-label">Confirm Password</label>
+                    <input id="reg-confirm" type="password" placeholder="Confirm password" class="modal-input">
+                </div>
+                <div class="border rounded p-3 flex items-center justify-between text-[12px] font-bold mt-4 bg-gray-50/50">
+                    <div class="text-green-600 flex items-center"><i class="fa-solid fa-circle-check mr-2"></i> Success!</div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-gray-800 uppercase font-black text-[10px] tracking-widest leading-tight">Cloudflare</span>
+                        <div class="flex space-x-2 text-[8px] text-gray-400 font-normal"><span>Privacy</span><span>•</span><span>Help</span></div>
+                    </div>
+                </div>
+                <button onclick="handleAuth('register')" class="w-full bg-[#3066e3] text-white py-3.5 rounded font-bold uppercase tracking-wider mt-4 shadow-sm hover:bg-blue-700">Register</button>
+            </div>
+            <div class="mt-8 text-center text-xs text-gray-500 font-medium">
+                Already have an account? <span onclick="toggleModal('register-modal'); toggleModal('login-modal')" class="text-blue-600 cursor-pointer uppercase font-bold ml-1">Login</span>
+            </div>
         </div>
     </div>
 
-    <div id="withdraw-methods-page" class="hidden fixed inset-0 bg-[#f4f7f9] z-[150] overflow-y-auto">
-        <header class="bg-dark-navy text-white p-4 flex items-center border-b border-white/5"><button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button><h1 class="text-sm font-bold uppercase tracking-widest flex-1 text-center pr-8">ወጪ አማራጮች</h1></header>
-        <div class="p-6 space-y-4">
-            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="telebirr_logo.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
-            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="cbe_logo.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
-            <div onclick="showPage('withdraw-form-page')" class="bg-card-blue p-8 rounded-2xl flex flex-col items-center"><img src="abyssinia.png" class="h-10 mb-2"><button class="w-full bg-neon-green text-black py-2 rounded-lg font-black text-xs uppercase">Withdraw</button></div>
+    <div id="deposit-methods-page" class="hidden fixed inset-0 bg-page-blue z-[150] overflow-y-auto">
+        <header class="bg-dark-navy text-white p-4 flex items-center sticky top-0">
+            <button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button>
+            <h1 class="text-sm font-bold uppercase flex-1 text-center pr-8">ገቢ አማራጮች</h1>
+        </header>
+        
+        <div class="p-4">
+            <div class="bg-white border-4 border-red-600 rounded-xl p-4 text-center">
+                <p class="text-red-600 font-black text-sm uppercase mb-1 underline">Strict Warning!</p>
+                <p class="text-red-600 font-black text-sm">እባክዎ ቢያንስ 400 ብር ያስገቡ፣ ከዚያ በታች የሚላክ ገንዘብ አይመዘገብም (ሊጠፋ ይችላል)!</p>
+            </div>
+        </div>
+
+        <div class="p-6 space-y-6">
+            <div class="bg-option-blue p-10 rounded-2xl flex flex-col items-center shadow-2xl">
+                <img src="telebirr_logo.png" class="h-10 mb-4 object-contain">
+                <button onclick="showPage('tele-dep')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase text-sm shadow-lg active:scale-95 transition">Deposit</button>
+            </div>
+            <div class="bg-option-blue p-10 rounded-2xl flex flex-col items-center shadow-2xl">
+                <img src="cbe_logo.png" class="h-10 mb-4 object-contain">
+                <button onclick="showPage('cbe-dep')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase text-sm shadow-lg active:scale-95 transition">Deposit</button>
+            </div>
+            <div class="bg-option-blue p-10 rounded-2xl flex flex-col items-center shadow-2xl">
+                <img src="abyssinia.png" class="h-10 mb-4 object-contain">
+                <button onclick="showPage('boa-dep')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase text-sm shadow-lg active:scale-95 transition">Deposit</button>
+            </div>
         </div>
     </div>
 
-    <div id="tele-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
-        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
-            <p>ከቴሌብር ወደ <span class="text-neon-green font-black">0950702900</span> ያስተላልፉ</p>
-            <input id="dep-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
-            <textarea id="dep-sms" placeholder="Paste SMS here" class="w-full bg-dark-navy p-4 rounded-xl h-32"></textarea>
-            <button onclick="handleTransaction('deposit', 'dep-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+    <div id="tele-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4 overflow-y-auto">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4 shadow-2xl">
+            <h2 class="font-bold text-center border-b border-white/10 pb-2">Telebirr Transfer</h2>
+            <p class="text-sm">ከቴሌብር ወደ <span class="text-deposit-green font-black underline">0950702900</span> ያስተላልፉ:: (Min: 400)</p>
+            <input id="tele-amt" type="number" value="400" min="400" class="w-full bg-dark-navy p-4 rounded-xl font-bold outline-none border border-white/10">
+            <textarea id="tele-sms" placeholder="Paste Telebirr SMS here..." class="w-full bg-dark-navy p-4 rounded-xl h-40 border border-white/10 outline-none"></textarea>
+            <button onclick="processDeposit('tele-amt')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase shadow-lg">Submit Transfer</button>
         </div>
     </div>
 
-    <div id="cbe-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
-        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
-            <p>ከ CBE ወደ <span class="text-neon-green font-black">1000610149786</span> ያስተላልፉ</p>
-            <input id="cbe-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
-            <button onclick="handleTransaction('deposit', 'cbe-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+    <div id="cbe-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4 overflow-y-auto">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4 shadow-2xl">
+            <h2 class="font-bold text-center border-b border-white/10 pb-2">CBE Transfer</h2>
+            <p class="text-sm">ከ CBE ወደ <span class="text-deposit-green font-black underline">1000610149786</span> ያስተላልፉ:: (Min: 400)</p>
+            <input id="cbe-amt" type="number" value="400" min="400" class="w-full bg-dark-navy p-4 rounded-xl font-bold outline-none border border-white/10">
+            <textarea id="cbe-sms" placeholder="Paste Bank SMS here..." class="w-full bg-dark-navy p-4 rounded-xl h-40 border border-white/10 outline-none"></textarea>
+            <button onclick="processDeposit('cbe-amt')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase shadow-lg">Submit Transfer</button>
         </div>
     </div>
 
-    <div id="boa-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4">
-        <button onclick="showPage('deposit-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <div class="bg-card-blue p-6 rounded-2xl space-y-4">
-            <p>ከ BOA ወደ <span class="text-neon-green font-black">157992651</span> ያስተላልፉ</p>
-            <input id="boa-amt" type="number" value="100.00" class="w-full bg-dark-navy p-4 rounded-xl font-bold">
-            <button onclick="handleTransaction('deposit', 'boa-amt')" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Submit</button>
+    <div id="boa-dep" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-4 overflow-y-auto">
+        <button onclick="showPage('deposit-methods-page')" class="mb-4 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="bg-card-blue p-6 rounded-2xl space-y-4 shadow-2xl">
+            <h2 class="font-bold text-center border-b border-white/10 pb-2">BOA Transfer</h2>
+            <p class="text-sm">ከ BOA ወደ <span class="text-deposit-green font-black underline">157992651</span> ያስተላልፉ:: (Min: 400)</p>
+            <input id="boa-amt" type="number" value="400" min="400" class="w-full bg-dark-navy p-4 rounded-xl font-bold outline-none border border-white/10">
+            <textarea id="boa-sms" placeholder="Paste Bank SMS here..." class="w-full bg-dark-navy p-4 rounded-xl h-40 border border-white/10 outline-none"></textarea>
+            <button onclick="processDeposit('boa-amt')" class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase shadow-lg">Submit Transfer</button>
         </div>
+    </div>
+
+    <div id="withdraw-methods-page" class="hidden fixed inset-0 bg-page-blue z-[150] overflow-y-auto">
+        <header class="bg-dark-navy text-white p-4 flex items-center sticky top-0">
+            <button onclick="showPage('home-page')" class="text-xl mr-4"><i class="fa-solid fa-arrow-left"></i></button>
+            <h1 class="text-sm font-bold uppercase flex-1 text-center pr-8">ወጪ አማራጮች</h1>
+        </header>
+        <div class="p-6 space-y-6">
+            <div onclick="showPage('withdraw-form-page')" class="bg-option-blue p-10 rounded-2xl flex flex-col items-center shadow-2xl cursor-pointer active:scale-95 transition">
+                <img src="telebirr_logo.png" class="h-10 mb-4 object-contain">
+                <button class="w-full bg-deposit-green text-black py-4 rounded-xl font-black uppercase text-sm">Withdraw</button>
+            </div>
+            </div>
     </div>
 
     <div id="withdraw-form-page" class="hidden fixed inset-0 bg-dark-navy z-[160] text-white p-6 overflow-y-auto">
-        <button onclick="showPage('withdraw-methods-page')" class="mb-4"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <h1 class="text-xl font-black mb-6 uppercase tracking-wider">Confirm Withdrawal</h1>
+        <button onclick="showPage('withdraw-methods-page')" class="mb-4 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-center font-bold mb-6">Confirm Withdrawal</h2>
         <div class="space-y-4">
-            <input id="with-amount" type="number" placeholder="Amount" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 font-bold text-xl outline-none">
-            <input id="with-account" type="text" placeholder="Bank/Phone Account Number" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 font-bold outline-none">
-            <button onclick="handleTransaction('withdraw', 'with-amount')" class="w-full bg-red-600 py-4 rounded-xl font-black uppercase">Confirm</button>
-        </div>
-    </div>
-
-    <div id="game-overlay" class="hidden fixed inset-0 bg-black/90 z-[200] flex flex-col items-center justify-center p-6 text-center">
-        <div class="bg-card-blue p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl">
-            <i class="fa-solid fa-lock text-red-500 text-5xl mb-4"></i>
-            <h2 class="text-white text-xl font-black mb-2 uppercase">Low Balance</h2>
-            <p class="text-gray-400 text-sm mb-6">ቢያንስ <span class="text-neon-green font-bold">300 ETB</span> ያስፈልግዎታል::</p>
-            <button onclick="showPage('deposit-methods-page'); closeGame()" class="w-full bg-neon-green text-black py-4 rounded-xl font-black uppercase">Deposit Now</button>
-            <button onclick="closeGame()" class="mt-4 text-white/50 text-xs font-bold uppercase">BACK</button>
+            <input id="with-amount" type="number" placeholder="Enter Amount" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 font-bold outline-none">
+            <input id="with-account" type="text" placeholder="Your Phone or Account Number" class="w-full bg-card-blue p-4 rounded-xl border border-white/10 outline-none">
+            <button onclick="handleTransaction('withdraw', 'with-amount')" class="w-full bg-red-600 py-4 rounded-xl font-black uppercase shadow-lg hover:bg-red-700 transition">Request Withdrawal</button>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://gasha.onrender.com"; // Change .net to .org to match your new domain
+        // API CONFIG (Replace with your actual live domain)
+        const API_URL = "https://gasha.onrender.com";
+        
         function initGrid() {
             const container = document.getElementById('home-page');
             container.innerHTML = "";
             for (let i = 1; i <= 30; i++) {
-                container.innerHTML += `<div class="game-item" onclick="openGame(${i})"><img src="${i}.jpg"><div class="play-overlay"><i class="fa-solid fa-play text-white text-3xl"></i></div></div>`;
+                container.innerHTML += `<div class="game-item" onclick="openGame(${i})"><img src="${i}.jpg" class="w-full h-full object-cover"><div class="play-overlay"><i class="fa-solid fa-play text-white text-3xl"></i></div></div>`;
             }
         }
+
         function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('translate-x-full'); }
-        function hidePages() { ['home-page', 'deposit-methods-page', 'withdraw-methods-page', 'tele-dep', 'cbe-dep', 'boa-dep', 'withdraw-form-page'].forEach(p => {if(document.getElementById(p)) document.getElementById(p).classList.add('hidden')}); }
-        function showPage(id) { hidePages(); document.getElementById(id).classList.remove('hidden'); if(document.getElementById('sidebar')) document.getElementById('sidebar').classList.add('translate-x-full'); }
+        function signOut() { localStorage.clear(); location.reload(); }
+        
+        function hidePages() {
+            ['home-page','deposit-methods-page','withdraw-methods-page','tele-dep','cbe-dep','boa-dep','withdraw-form-page']
+            .forEach(id => document.getElementById(id).classList.add('hidden'));
+        }
+
+        function showPage(id) {
+            hidePages();
+            document.getElementById(id).classList.remove('hidden');
+            if(document.getElementById('sidebar')) document.getElementById('sidebar').classList.add('translate-x-full');
+        }
+
         function openGame(id) {
             const user = JSON.parse(localStorage.getItem('gasha_user'));
-            if (!user || user.balance < 300) document.getElementById('game-overlay').classList.remove('hidden');
-            else alert("Loading Game " + id + "...");
+            if (!user || user.balance < 300) {
+                alert("ሂሳብዎ ከ 300 ብር በታች ነው! / Balance too low (Min: 300 ETB)");
+            } else {
+                alert("Loading Game " + id + "...");
+            }
         }
-        function closeGame() { document.getElementById('game-overlay').classList.add('hidden'); }
-        function signOut() { localStorage.clear(); location.reload(); }
 
+        function processDeposit(inputId) {
+            const val = document.getElementById(inputId).value;
+            if (val < 400) return alert("ዝቅተኛው ገቢ 400 ብር ነው! / Min 400 ETB required.");
+            // Live simulation: Reload to show user it submitted
+            location.reload(); 
+        }
+
+        // Auth Logic
         async function handleAuth(type) {
             const phone = document.getElementById(type === 'register' ? 'reg-phone' : 'log-phone').value;
             const password = document.getElementById(type === 'register' ? 'reg-pass' : 'log-pass').value;
+            
+            if (type === 'register') {
+                const confirm = document.getElementById('reg-confirm').value;
+                if (password !== confirm) return alert("Passwords do not match!");
+            }
+
             try {
-                const res = await fetch(`${API_URL}/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) });
+                const res = await fetch(`${API_URL}/${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, password })
+                });
                 const data = await res.json();
-                if (res.ok) { localStorage.setItem('gasha_user', JSON.stringify(data.user)); location.reload(); } else alert(data.message);
-            } catch(e) { alert("Server Error"); }
+                if (res.ok) {
+                    localStorage.setItem('gasha_user', JSON.stringify(data.user));
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch(e) {
+                alert("Server Connection Error. Check if your backend is running.");
+            }
         }
 
+        // Transaction Logic
         async function handleTransaction(type, inputId) {
             const amount = document.getElementById(inputId).value;
             const accountNumber = document.getElementById('with-account')?.value || '';
             const user = JSON.parse(localStorage.getItem('gasha_user'));
+            
             try {
-                const res = await fetch(`${API_URL}/transaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: user.phone, amount, type, accountNumber }) });
+                const res = await fetch(`${API_URL}/transaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: user.phone, amount, type, accountNumber })
+                });
                 const data = await res.json();
-                if (res.ok) { user.balance = data.newBalance; localStorage.setItem('gasha_user', JSON.stringify(user)); location.reload(); } else alert(data.message);
-            } catch(e) { alert("Transaction Failed"); }
+                if (res.ok) {
+                    user.balance = data.newBalance;
+                    localStorage.setItem('gasha_user', JSON.stringify(user));
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch(e) {
+                alert("Connection failed.");
+            }
         }
 
         window.onload = () => {
